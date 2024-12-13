@@ -1,12 +1,15 @@
 import React from 'react'
+import Navbar from './Components/Navbar'
+import Hero from './Components/Hero'
+import Highlights from './Components/Highlights'
 
 const App = () => {
   return (
-    <div>
-    <h1 class="text-3xl font-bold underline">
-    Hello world!
-  </h1>
-    </div>
+    <main className='bg-black'>
+      <Navbar />
+      <Hero />
+      <Highlights />
+    </main>
   )
 }
 
