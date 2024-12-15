@@ -28,6 +28,22 @@ const Model = () => {
 
   const tl = gsap.timeline();
 
+  const smallModelObserver = useRef(null);
+  const largeModelObserver = useRef(null);
+
+  const startRotation = (modelRef) => {
+    gsap.to(modelRef.rotation, {
+      y: "+=6.28", // 360 degrees in radians
+      repeat: -1, // Repeat indefinitely
+      duration: 10, // Rotate in 10 seconds
+      ease: "none", // No easing, continuous rotation
+    });
+  };
+
+  const stopRotation = (modelRef) => {
+    gsap.killTweensOf(modelRef.rotation); // Stop rotation
+  };
+
   useEffect(() => {
     // Animate iPhone model rotation when the size changes (either small or large)
     if (size === 'large') {
@@ -35,12 +51,8 @@ const Model = () => {
         transform: 'translateX(-100%)',
         duration: 2
       });
-      gsap.to(large.current.rotation, {
-        y: "+=6.28", // 360 degrees in radians
-        repeat: -1, // Repeat indefinitely
-        duration: 10, // Rotate in 10 seconds
-        ease: "none", // No easing, continuous rotation
-      });
+      stopRotation(small.current); // Stop small model rotation
+      startRotation(large.current); // Start large model rotation
     }
 
     if (size === 'small') {
@@ -48,14 +60,66 @@ const Model = () => {
         transform: 'translateX(0)',
         duration: 2
       });
-      gsap.to(small.current.rotation, {
-        y: "+=6.28", // 360 degrees in radians
-        repeat: -1, // Repeat indefinitely
-        duration: 10, // Rotate in 10 seconds
-        ease: "none", // No easing, continuous rotation
-      });
+      stopRotation(large.current); // Stop large model rotation
+      startRotation(small.current); // Start small model rotation
     }
   }, [size]);
+
+  useEffect(() => {
+    const options = {
+      root: null, // Use the viewport as the root
+      rootMargin: "0px",
+      threshold: 0.5, // Trigger when 50% of the model is in view
+    };
+
+    // Observer callback for small model
+    const smallModelObserverCallback = (entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          startRotation(small.current); // Start rotation when in view
+        } else {
+          stopRotation(small.current); // Stop rotation when out of view
+        }
+      });
+    };
+
+    // Observer callback for large model
+    const largeModelObserverCallback = (entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          startRotation(large.current); // Start rotation when in view
+        } else {
+          stopRotation(large.current); // Stop rotation when out of view
+        }
+      });
+    };
+
+    // Creating observers for both models
+    smallModelObserver.current = new IntersectionObserver(smallModelObserverCallback, options);
+    largeModelObserver.current = new IntersectionObserver(largeModelObserverCallback, options);
+
+    // Start observing the models' container DOM elements (wrappers)
+    const smallModelElement = document.getElementById('small-model');
+    const largeModelElement = document.getElementById('large-model');
+
+    if (smallModelElement) {
+      smallModelObserver.current.observe(smallModelElement);
+    }
+
+    if (largeModelElement) {
+      largeModelObserver.current.observe(largeModelElement);
+    }
+
+    // Cleanup observers on unmount
+    return () => {
+      if (smallModelObserver.current) {
+        smallModelObserver.current.disconnect();
+      }
+      if (largeModelObserver.current) {
+        largeModelObserver.current.disconnect();
+      }
+    };
+  }, []);
 
   useGSAP(() => {
     gsap.to('#heading', { y: 0, opacity: 1 });
@@ -70,25 +134,31 @@ const Model = () => {
 
         <div className="flex flex-col items-center mt-5">
           <div className="w-full h-[75vh] md:h-[90vh] overflow-hidden relative">
-            <ModelView 
-              index={1}
-              groupRef={small}
-              gsapType="view1"
-              controlRef={cameraControlSmall}
-              setRotationState={setSmallRotation}
-              item={model}
-              size={size}
-            />  
+            {/* Wrapper div for small model */}
+            <div id="small-model">
+              <ModelView 
+                index={1}
+                groupRef={small}
+                gsapType="view1"
+                controlRef={cameraControlSmall}
+                setRotationState={setSmallRotation}
+                item={model}
+                size={size}
+              />
+            </div>
 
-            <ModelView 
-              index={2}
-              groupRef={large}
-              gsapType="view2"
-              controlRef={cameraControlLarge}
-              setRotationState={setLargeRotation}
-              item={model}
-              size={size}
-            />
+            {/* Wrapper div for large model */}
+            <div id="large-model">
+              <ModelView 
+                index={2}
+                groupRef={large}
+                gsapType="view2"
+                controlRef={cameraControlLarge}
+                setRotationState={setLargeRotation}
+                item={model}
+                size={size}
+              />
+            </div>
 
             <Canvas
               className="w-full h-full"
