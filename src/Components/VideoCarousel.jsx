@@ -127,32 +127,39 @@ const VideoCarousel = () => {
 
   // vd id is the id for every video until id becomes number 3
   const handleProcess = (type, i) => {
-    switch (type) {
-      case "video-end":
-        setVideo((pre) => ({ ...pre, isEnd: true, videoId: i + 1 }));
-        break;
-
-      case "video-last":
-        setVideo((pre) => ({ ...pre, isLastVideo: true }));
-        break;
-
-      case "video-reset":
-        setVideo((pre) => ({ ...pre, videoId: 0, isLastVideo: false }));
-        break;
-
-      case "pause":
-        setVideo((pre) => ({ ...pre, isPlaying: !pre.isPlaying }));
-        break;
-
-      case "play":
-        setVideo((pre) => ({ ...pre, isPlaying: !pre.isPlaying }));
-        break;
-
-      default:
-        return video;
-    }
+    setVideo((prev) => {
+      switch (type) {
+        case "video-end":
+          if (prev.videoId !== i + 1) {
+            return { ...prev, isEnd: true, videoId: i + 1 };
+          }
+          break;
+        case "video-last":
+          if (!prev.isLastVideo) {
+            return { ...prev, isLastVideo: true };
+          }
+          break;
+        case "video-reset":
+          if (prev.videoId !== 0) {
+            return { ...prev, videoId: 0, isLastVideo: false };
+          }
+          break;
+        case "pause":
+          if (prev.isPlaying !== !prev.isPlaying) {
+            return { ...prev, isPlaying: !prev.isPlaying };
+          }
+          break;
+        case "play":
+          if (prev.isPlaying !== !prev.isPlaying) {
+            return { ...prev, isPlaying: !prev.isPlaying };
+          }
+          break;
+        default:
+          return prev;
+      }
+    });
   };
-
+  
   const handleLoadedMetaData = (i, e) => setLoadedData((pre) => [...pre, e]);
 
   return (
