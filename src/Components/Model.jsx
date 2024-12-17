@@ -158,7 +158,7 @@ const Model = () => {
             </div>
 
             {/* Wrapper div for large model */}
-            <div id="large-model">
+            <div id="large-model" className={size === 'small' ? 'hidden' : ''}>
               <ModelView 
                 index={2}
                 groupRef={large}
@@ -208,5 +208,6 @@ const Model = () => {
     </section>
   );
 };
+
 
 export default Model;
