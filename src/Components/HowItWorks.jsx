@@ -23,7 +23,7 @@ const HowItWorks = () => {
       opacity: 1,
       y: 0,
       duration: 1,
-      ease: 'power2.inOut'
+      ease: 'power2.inOut',
     })
   }, []);
 
@@ -31,7 +31,7 @@ const HowItWorks = () => {
     <section className="common-padding">
       <div className="screen-max-width">
         <div id="chip" className="flex-center w-full my-20">
-          <img src={chipImg} alt="A17 Pro chip" width={180} height={180} />
+          <img src={chipImg} alt="A17 Pro chip" className="w-full max-w-[180px] mx-auto" width={180} height={180} />
         </div>
 
         <div className="flex flex-col items-center">
@@ -51,11 +51,18 @@ const HowItWorks = () => {
               <img 
                 src={frameImg}
                 alt="frame"
+                loading="lazy" 
                 className="bg-transparent relative z-10"
               />
             </div>
             <div className="hiw-video">
-                <video className="pointer-events-none" playsInline preload="none" muted autoPlay ref={videoRef}>
+                <video className="pointer-events-none" playsInline 
+                preload="auto" 
+                loop
+                muted 
+                autoPlay 
+                loading="lazy"
+                ref={videoRef}>
                   <source src={frameVideo} type="video/mp4" />
                 </video>
               </div>

@@ -1,6 +1,6 @@
 import { useGSAP } from "@gsap/react";
 import gsap from "gsap";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback, useMemo } from "react";
 import ModelView from "./ModelView";
 import { yellowImg } from "../utils";
 import * as THREE from 'three';
@@ -31,18 +31,18 @@ const Model = () => {
   const smallModelObserver = useRef(null);
   const largeModelObserver = useRef(null);
 
-  const startRotation = (modelRef) => {
+  const startRotation = useCallback((modelRef) => {
     gsap.to(modelRef.rotation, {
       y: "+=6.28", // 360 degrees in radians
       repeat: -1, // Repeat indefinitely
       duration: 10, // Rotate in 10 seconds
       ease: "none", // No easing, continuous rotation
     });
-  };
+  }, []);
 
-  const stopRotation = (modelRef) => {
+  const stopRotation = useCallback((modelRef) => {
     gsap.killTweensOf(modelRef.rotation); // Stop rotation
-  };
+  }, []);
 
   useEffect(() => {
     // Animate iPhone model rotation when the size changes (either small or large)
@@ -63,7 +63,7 @@ const Model = () => {
       stopRotation(large.current); // Stop large model rotation
       startRotation(small.current); // Start small model rotation
     }
-  }, [size]);
+  }, [size, smallRotation, largeRotation, tl, startRotation, stopRotation]);
 
   useEffect(() => {
     const options = {
@@ -119,11 +119,23 @@ const Model = () => {
         largeModelObserver.current.disconnect();
       }
     };
-  }, []);
+  }, [startRotation, stopRotation]);
 
   useGSAP(() => {
     gsap.to('#heading', { y: 0, opacity: 1 });
   }, []);
+
+  const memoizedModelViewProps = useMemo(() => ({
+    item: model,
+    size,
+    setRotationState: (rotation) => {
+      if (size === 'small') {
+        setSmallRotation(rotation);
+      } else {
+        setLargeRotation(rotation);
+      }
+    }
+  }), [model, size]);
 
   return (
     <section className="common-padding">
@@ -141,9 +153,7 @@ const Model = () => {
                 groupRef={small}
                 gsapType="view1"
                 controlRef={cameraControlSmall}
-                setRotationState={setSmallRotation}
-                item={model}
-                size={size}
+                {...memoizedModelViewProps}
               />
             </div>
 
@@ -154,9 +164,7 @@ const Model = () => {
                 groupRef={large}
                 gsapType="view2"
                 controlRef={cameraControlLarge}
-                setRotationState={setLargeRotation}
-                item={model}
-                size={size}
+                {...memoizedModelViewProps}
               />
             </div>
 

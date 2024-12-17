@@ -1,11 +1,22 @@
+import React, { useCallback } from "react";
 import { Html, OrbitControls, PerspectiveCamera, View } from "@react-three/drei";
 import * as THREE from 'three';
 import Lights from './Lights';
 import Loader from './Loader';
 import IPhone from './Iphone';
-import { Suspense } from "react";
+import { Suspense, useMemo } from "react";
 
-const ModelView = ({ index, groupRef, gsapType, controlRef, setRotationState, size, item }) => {
+
+const ModelView = React.memo(({ index, groupRef, gsapType, controlRef, setRotationState, size, item }) => {
+
+  const targetVector = useMemo(() => new THREE.Vector3(0, 0, 0), []);
+
+  const handleRotationEnd = useCallback(() => {
+    if (controlRef.current) {
+      setRotationState(controlRef.current.getAzimuthalAngle());
+    }
+  }, [controlRef, setRotationState]);
+
   return (
     <View
       index={index}
@@ -25,11 +36,14 @@ const ModelView = ({ index, groupRef, gsapType, controlRef, setRotationState, si
         enableZoom={false}
         enablePan={false}
         rotateSpeed={0.4}
-        target={new THREE.Vector3(0, 0, 0)}
-        onEnd={() => setRotationState(controlRef.current.getAzimuthalAngle())}
+        target={targetVector}
+        onEnd={handleRotationEnd}
       />
 
-      <group ref={groupRef} name={`${index === 1 ? 'small' : 'large'}`} position={[0, 0 ,0]}>
+      <group 
+      ref={groupRef} 
+      name={`${index === 1 ? 'small' : 'large'}`} position={[0, 0 ,0]}
+      >
         <Suspense fallback={<Loader />}>
           <IPhone 
             scale={index === 1 ? [15, 15, 15] : [17, 17, 17]}
@@ -40,6 +54,6 @@ const ModelView = ({ index, groupRef, gsapType, controlRef, setRotationState, si
       </group>
     </View>
   );
-};
+});
 
 export default ModelView;
